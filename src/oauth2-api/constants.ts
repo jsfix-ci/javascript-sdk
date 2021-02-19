@@ -1,0 +1,9 @@
+export const CLIENT_ID = '09a30733a562bb2c65bf007f1cee0ac1d4331f85';
+export const BASE_URL = 'https://api.dev.fibricheck.com';
+export const AUTH_BASE = '/auth/v2';
+export const USER_BASE = '/users/v1';
+export const PROFILE_BASE = '/profiles/v1';
+export const CONFIGURATION_BASE = '/configurations/v2';
+export const ORGANIZATION_BASE = '/data/v1';
+export const LOCALIZATION_BASE = '/localizations/v1';
+export const HEALTH_ENDPOINT = `${USER_BASE}/health`;
