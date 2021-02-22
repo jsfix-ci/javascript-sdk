@@ -3,7 +3,14 @@ import * as sdk from '../../src/index';
 import { apiHost } from '../__helpers__/config';
 import { userData, updatedUserData, newUserData, roleData } from '../__helpers__/user';
 import { userResponse, permissionResponse, roleResponse } from '../__helpers__/apiResponse';
-import { ResourceUnknownException } from '../__helpers__/user';
+import {
+  ResourceUnknownException,
+  EmailUnknownException,
+  NotActivatedException,
+  EmailUsedException,
+  ResourceAlreadyExistsException,
+  AuthenticationException,
+} from '../__helpers__/user';
 
 describe('Users', () => {
   const userId = '5a0b2adc265ced65a8cab865';
@@ -150,7 +157,22 @@ describe('Users', () => {
     expect(user.email).toBe(newEmail);
   });
 
-  it('Add a patient enlistment to a user', async () => {
+  it('Can not update a users email', async () => {
+    nock(`https://api.${apiHost}/users/v1`)
+      .put(`/${userId}/email`)
+      .reply(400, EmailUsedException);
+
+    let thrownError;
+    try {
+      await sdk.users.updateEmail(userId, newEmail);
+    } catch (error) {
+      thrownError = error;
+    }
+
+    expect(thrownError.qError.qName).toBe("EMAIL_USED_EXCEPTION");
+  });
+
+  it('Can add a patient enlistment to a user', async () => {
     nock(`https://api.${apiHost}/users/v1`)
       .post(`/${userId}/patient_enlistments`)
       .reply(200, { recordsAffected: 1 });
@@ -158,6 +180,21 @@ describe('Users', () => {
     const result = await sdk.users.addPatientEnlistment(userId, groupId);
 
     expect(result).toBeGreaterThan(0);
+  });
+
+  it('Can not add a patient enlistment to a user', async () => {
+    nock(`https://api.${apiHost}/users/v1`)
+      .post(`/${userId}/patient_enlistments`)
+      .reply(400, ResourceAlreadyExistsException);
+
+    let thrownError;
+    try {
+      await sdk.users.addPatientEnlistment(userId, groupId);
+    } catch (error) {
+      thrownError = error;
+    }
+
+    expect(thrownError.qName).toBe("RESOURCE_ALREADY_EXISTS_EXCEPTION");
   });
 
   it('Can remove a patient enlistment from a user', async () => {
@@ -215,6 +252,21 @@ describe('Users', () => {
     expect(authenticatedUser.id);
   });
 
+  it('Can not authenticate', async () => {
+    nock(`https://api.${apiHost}/users/v1`)
+      .post('/authenticate')
+      .reply(401, AuthenticationException);
+
+    let thrownError;
+    try {
+      await sdk.users.authenticate(oldEmail, newPass);
+    } catch (error) {
+      thrownError = error;
+    }
+
+    expect(thrownError.qName).toBe("AUTHENTICATION_EXCEPTION");
+  });
+
   it('Can request activation mail', async () => {
     nock(`https://api.${apiHost}/users/v1`)
       .get(`/activation?email=${newEmail}`)
@@ -243,6 +295,33 @@ describe('Users', () => {
     const result = await sdk.users.requestPasswordReset(newEmail);
 
     expect(result).toBe(true);
+  });
+
+  it('Can not request a password reset', async () => {
+    nock(`https://api.${apiHost}/users/v1`)
+      .get(`/forgot_password?email=${newEmail}`)
+      .reply(400, EmailUnknownException);
+
+    let thrownError;
+    try {
+      await sdk.users.requestPasswordReset(newEmail);
+    } catch (error) {
+      thrownError = error;
+    }
+
+    expect(thrownError.qName).toBe("EMAIL_UNKNOWN_EXCEPTION");
+
+    nock(`https://api.${apiHost}/users/v1`)
+      .get(`/forgot_password?email=${newEmail}`)
+      .reply(400, NotActivatedException);
+
+    try {
+      await sdk.users.requestPasswordReset(newEmail);
+    } catch (error) {
+      thrownError = error;
+    }
+
+    expect(thrownError.qName).toBe("NOT_ACTIVATED_EXCEPTION");
   });
 
   it('Can complete a password reset', async () => {
