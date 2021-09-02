@@ -797,6 +797,32 @@ export interface DataDocumentsService {
   ): Promise<AffectedRecords>;
 }
 
+type OmitFirstArg<F> = F extends (x: any, ...args: infer P) => infer R
+  ? (...args: P) => R
+  : never;
+
+export interface DataSchemaDocumentsService<CustomData = null> {
+  assertNonLockedState: OmitFirstArg<
+    DataDocumentsService['assertNonLockedState']
+  >;
+  create: OmitFirstArg<DataDocumentsService['create']>;
+  update: OmitFirstArg<DataDocumentsService['update']>;
+  remove: OmitFirstArg<DataDocumentsService['remove']>;
+  removeFields: OmitFirstArg<DataDocumentsService['removeFields']>;
+  transition: OmitFirstArg<DataDocumentsService['transition']>;
+  linkGroups: OmitFirstArg<DataDocumentsService['linkGroups']>;
+  unlinkGroups: OmitFirstArg<DataDocumentsService['unlinkGroups']>;
+  linkUsers: OmitFirstArg<DataDocumentsService['linkUsers']>;
+  unlinkUsers: OmitFirstArg<DataDocumentsService['unlinkUsers']>;
+  find(options?: OptionsWithRql): Promise<PagedResult<Document<CustomData>>>;
+  findAll(options?: OptionsWithRql): Promise<Document<CustomData>[]>;
+  findById(
+    documentId: ObjectId,
+    options?: OptionsWithRql
+  ): Promise<Document<CustomData>>;
+  findFirst(options?: OptionsWithRql): Promise<Document<CustomData>>;
+}
+
 export interface DataIndexesService {
   /**
    * Create an index
