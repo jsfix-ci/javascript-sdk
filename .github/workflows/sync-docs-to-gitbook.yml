@@ -2,7 +2,7 @@ name: Sync SDK docs
 on:
   # Allow manual triggering
   workflow_dispatch:
-  
+
 jobs:
   sync-sdk-docs:
     runs-on: ubuntu-latest
@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: Extrahorizon-SDK
-      
+
       - name: Checkout Gitbook repo
         uses: actions/checkout@v2
         with:
@@ -33,6 +33,7 @@ jobs:
           repository: ExtraHorizon/exh-infrastructure-tools-scripts
           path: exh-infrastructure-tools-scripts
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          branch: master
 
       - name: Copy Update Summary Script to Gitbook Directory
         run: cp -r exh-infrastructure-tools-scripts/gitbook-sdk-docs-summary-updater/* gitbook
